@@ -143,11 +143,14 @@ export class DeviceListComponent {
     const specifications: Record<string, string | number> = {};
     this.specificationFields().forEach(spec => {
       if (spec.key.trim()) {
-        // Skúsiť skonvertovať na číslo, inak ponechať ako string
-        const numValue = parseFloat(spec.value);
-        specifications[spec.key.trim()] = !isNaN(numValue) && spec.value.trim() !== '' 
+        const trimmedValue = spec.value.trim();
+        // Konvertovať na číslo iba ak hodnota obsahuje VÝHRADNE číslice a desatinnú bodku/čiarku
+        const numValue = parseFloat(trimmedValue.replace(',', '.'));
+        const isOnlyNumber = /^-?\d+([.,]\d+)?$/.test(trimmedValue);
+        
+        specifications[spec.key.trim()] = isOnlyNumber && !isNaN(numValue)
           ? numValue 
-          : spec.value;
+          : trimmedValue;
       }
     });
 
