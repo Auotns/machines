@@ -962,6 +962,10 @@ export class DataService {
 
   // ========== MAINTENANCE LOGS ==========
 
+  getMaintenanceLogsSignal() {
+    return this.logs.asReadonly();
+  }
+
   getMaintenanceLogs(): Observable<MaintenanceLog[]> {
     if (environment.enableMockData) {
       return of(this.logs()).pipe(delay(300));

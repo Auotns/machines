@@ -17,8 +17,14 @@ export class MaintenanceListComponent {
   private dataService = inject(DataService);
   authService = inject(AuthService);
   
-  logs = toSignal(this.dataService.getMaintenanceLogs(), { initialValue: [] });
+  // Use signal directly from DataService that gets updated
+  logs = computed(() => this.dataService.getMaintenanceLogsSignal()());
   filterType = signal<'all' | 'scheduled' | 'emergency'>('all');
+
+  constructor() {
+    // Load logs on init
+    this.dataService.getMaintenanceLogs().subscribe();
+  }
 
   filteredLogs = computed(() => {
     const type = this.filterType();
@@ -40,8 +46,7 @@ export class MaintenanceListComponent {
     this.dataService.deleteMaintenanceLog(logId).subscribe({
       next: () => {
         console.log('✅ Maintenance log deleted:', logId);
-        // Reload logs to reflect the deletion
-        this.dataService.getMaintenanceLogs().subscribe();
+        // Signal is automatically updated in DataService
       },
       error: (err) => {
         console.error('❌ Error deleting maintenance log:', err);
