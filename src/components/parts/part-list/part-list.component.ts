@@ -22,6 +22,7 @@ export class PartListComponent {
   searchTerm = signal('');
   showAddForm = signal(false);
   partsWithHistory = signal<any[]>([]);
+  stockFilter = signal<'all' | 'below-min' | 'low' | 'ok'>('all');
 
   constructor() {
     // Load parts and devices on init
@@ -59,22 +60,43 @@ export class PartListComponent {
 
   filteredParts = computed(() => {
     const term = this.searchTerm().toLowerCase();
+    const filter = this.stockFilter();
     const partsToFilter = this.partsWithHistory().length > 0 ? this.partsWithHistory() : this.parts();
     
-    if (!term) {
-      return partsToFilter;
+    let filtered = partsToFilter;
+    
+    // Apply stock filter
+    if (filter === 'below-min') {
+      filtered = filtered.filter((part: any) => part.quantity < part.minQuantity);
+    } else if (filter === 'low') {
+      filtered = filtered.filter((part: any) => 
+        part.quantity >= part.minQuantity && part.quantity < part.minQuantity * 1.5
+      );
+    } else if (filter === 'ok') {
+      filtered = filtered.filter((part: any) => part.quantity >= part.minQuantity * 1.5);
     }
-    return partsToFilter.filter((part: any) => 
-      part.name.toLowerCase().includes(term) ||
-      part.sku.toLowerCase().includes(term) ||
-      part.location.toLowerCase().includes(term) ||
-      (part.deviceName && part.deviceName.toLowerCase().includes(term))
-    );
+    
+    // Apply search term
+    if (term) {
+      filtered = filtered.filter((part: any) => 
+        part.name.toLowerCase().includes(term) ||
+        part.sku.toLowerCase().includes(term) ||
+        part.location.toLowerCase().includes(term) ||
+        (part.deviceName && part.deviceName.toLowerCase().includes(term))
+      );
+    }
+    
+    return filtered;
   });
   
   onSearch(event: Event) {
     const input = event.target as HTMLInputElement;
     this.searchTerm.set(input.value);
+  }
+
+  onFilterChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.stockFilter.set(select.value as any);
   }
 
   getQuantityClass(quantity: number, minQuantity: number = 10): string {

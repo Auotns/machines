@@ -82,6 +82,10 @@ const translations = {
     MIN_QUANTITY: 'Min. Quantity',
     LOADING_PARTS: 'Loading parts...',
     NO_PARTS_FOUND: 'No parts found for your search.',
+    FILTER_ALL_PARTS: 'All Parts',
+    FILTER_BELOW_MIN: 'Below Minimum',
+    FILTER_LOW_STOCK: 'Low Stock',
+    FILTER_NORMAL_STOCK: 'Normal Stock',
 
     // Maintenance List
     MAINTENANCE_LOG: 'Maintenance Log',
@@ -224,6 +228,10 @@ const translations = {
     MIN_QUANTITY: 'Min. množstvo',
     LOADING_PARTS: 'Načítavam diely...',
     NO_PARTS_FOUND: 'Pre vaše vyhľadávanie sa nenašli žiadne diely.',
+    FILTER_ALL_PARTS: 'Všetky diely',
+    FILTER_BELOW_MIN: 'Pod minimom',
+    FILTER_LOW_STOCK: 'Nízke zásoby',
+    FILTER_NORMAL_STOCK: 'Normálne zásoby',
 
     // Maintenance List
     MAINTENANCE_LOG: 'Záznamy o údržbe',
@@ -366,6 +374,10 @@ const translations = {
     MIN_QUANTITY: 'Min. Menge',
     LOADING_PARTS: 'Ersatzteile werden geladen...',
     NO_PARTS_FOUND: 'Für Ihre Suche wurden keine Teile gefunden.',
+    FILTER_ALL_PARTS: 'Alle Teile',
+    FILTER_BELOW_MIN: 'Unter Minimum',
+    FILTER_LOW_STOCK: 'Niedriger Bestand',
+    FILTER_NORMAL_STOCK: 'Normaler Bestand',
 
     // Maintenance List
     MAINTENANCE_LOG: 'Wartungsprotokoll',
