@@ -35,7 +35,7 @@ export class DashboardComponent {
     return this.devices().reduce((acc, device) => acc + device.downtime, 0).toFixed(1);
   });
 
-  // Mesačný downtime z maintenance logs (aktuálny mesiac, len aktívne zariadenia)
+  // Mesačný downtime z maintenance logs (aktuálny mesiac, len aktívne zariadenia, len neodkladná údržba)
   monthlyDowntime = computed(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -46,12 +46,13 @@ export class DashboardComponent {
       .filter(d => d.status === 'operational' || d.status === 'maintenance')
       .map(d => d.id);
     
-    // Filtrovať logy len z aktívnych zariadení v aktuálnom mesiaci
+    // Filtrovať logy len z aktívnych zariadení v aktuálnom mesiaci a len NEODKLADNÚ údržbu
     const monthlyLogs = this.logs().filter(log => {
       const logDate = new Date(log.date);
       const isCurrentMonth = logDate.getMonth() === currentMonth && logDate.getFullYear() === currentYear;
       const isActiveDevice = activeDeviceIds.includes(log.deviceId);
-      return isCurrentMonth && isActiveDevice;
+      const isEmergency = log.type === 'emergency'; // Len neodkladná údržba
+      return isCurrentMonth && isActiveDevice && isEmergency;
     });
     
     const totalMinutes = monthlyLogs.reduce((acc, log) => acc + (log.durationMinutes || 0), 0);

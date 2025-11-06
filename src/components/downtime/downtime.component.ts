@@ -56,7 +56,7 @@ export class DowntimeComponent {
     this.selectedMonth.set(month);
   }
 
-  // Vypočítať downtime pre každý stroj samostatne (len aktívne zariadenia)
+  // Vypočítať downtime pre každý stroj samostatne (len aktívne zariadenia, len neodkladná údržba)
   deviceDowntimeStats = computed(() => {
     const currentMonth = this.selectedMonth();
     const currentYear = this.selectedYear();
@@ -77,15 +77,18 @@ export class DowntimeComponent {
                logDate.getFullYear() === currentYear;
       });
       
-      console.log(`Device ${device.name} (${device.id}):`, deviceLogs.length, 'logs found');
+      // Filtrovať len neodkladnú údržbu pre downtime výpočet
+      const emergencyLogs = deviceLogs.filter(log => log.type === 'emergency');
+      
+      console.log(`Device ${device.name} (${device.id}):`, deviceLogs.length, 'logs found,', emergencyLogs.length, 'emergency');
 
-      // Spočítať celkový downtime
-      const totalMinutes = deviceLogs.reduce((acc, log) => {
-        console.log(`  Log ${log.id}: durationMinutes =`, log.durationMinutes);
+      // Spočítať celkový downtime LEN Z NEODKLADNEJ údržby
+      const totalMinutes = emergencyLogs.reduce((acc, log) => {
+        console.log(`  Emergency log ${log.id}: durationMinutes =`, log.durationMinutes);
         return acc + (log.durationMinutes || 0);
       }, 0);
       const totalHours = totalMinutes / 60;
-      console.log(`  Total: ${totalMinutes} min = ${totalHours.toFixed(1)}h`);
+      console.log(`  Total downtime (emergency only): ${totalMinutes} min = ${totalHours.toFixed(1)}h`);
 
       // Vypočítať percentá (160h pracovného času mesačne, 2.5% target = 4h)
       const workingHoursPerMonth = 160;

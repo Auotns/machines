@@ -114,7 +114,7 @@ const translations = {
     IN_TARGET: 'In target',
     OVER_TARGET: 'Over target',
     DOWNTIME_INFO_TITLE: 'ℹ️ Calculation Information',
-    DOWNTIME_INFO_TEXT: 'Working time: 160 hours/month per device (20 working days × 8 hours). Target downtime: 2.5% = 4 hours/month. Minimum maintenance duration: 15 minutes.',
+    DOWNTIME_INFO_TEXT: 'Working time: 160 hours/month per device (20 working days × 8 hours). Target downtime: 2.5% = 4 hours/month. Only emergency maintenance counts towards downtime. Minimum maintenance duration: 15 minutes.',
     MONTHLY_DOWNTIME: 'Monthly Downtime',
     ACTIVE_DEVICES: 'active devices',
 
@@ -260,7 +260,7 @@ const translations = {
     IN_TARGET: 'V cieli',
     OVER_TARGET: 'Nad cieľom',
     DOWNTIME_INFO_TITLE: 'ℹ️ Informácie o výpočte',
-    DOWNTIME_INFO_TEXT: 'Pracovný čas: 160 hodín/mesiac na zariadenie (20 pracovných dní × 8 hodín). Cieľový prestoj: 2.5% = 4 hodiny/mesiac. Minimálne trvanie údržby: 15 minút.',
+    DOWNTIME_INFO_TEXT: 'Pracovný čas: 160 hodín/mesiac na zariadenie (20 pracovných dní × 8 hodín). Cieľový prestoj: 2.5% = 4 hodiny/mesiac. Do prestojov sa počíta len neodkladná údržba. Minimálne trvanie údržby: 15 minút.',
     MONTHLY_DOWNTIME: 'Mesačný prestoj',
     ACTIVE_DEVICES: 'aktívne zariadenia',
 
@@ -406,7 +406,7 @@ const translations = {
     IN_TARGET: 'Im Ziel',
     OVER_TARGET: 'Über Ziel',
     DOWNTIME_INFO_TITLE: 'ℹ️ Berechnungsinformationen',
-    DOWNTIME_INFO_TEXT: 'Arbeitszeit: 160 Stunden/Monat pro Gerät (20 Arbeitstage × 8 Stunden). Ziel-Ausfallzeit: 2,5% = 4 Stunden/Monat. Minimale Wartungsdauer: 15 Minuten.',
+    DOWNTIME_INFO_TEXT: 'Arbeitszeit: 160 Stunden/Monat pro Gerät (20 Arbeitstage × 8 Stunden). Ziel-Ausfallzeit: 2,5% = 4 Stunden/Monat. Nur Notfallwartungen zählen zur Ausfallzeit. Minimale Wartungsdauer: 15 Minuten.',
     MONTHLY_DOWNTIME: 'Monatliche Ausfallzeit',
     ACTIVE_DEVICES: 'aktive Geräte',
 
