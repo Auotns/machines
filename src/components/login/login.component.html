@@ -1,0 +1,23 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50">
+  <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+    <div class="text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+      </svg>
+      <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+        {{ 'LOGIN_TITLE' | translate }}
+      </h2>
+      <p class="mt-2 text-sm text-gray-600">
+        {{ 'LOGIN_SUBTITLE' | translate }}
+      </p>
+    </div>
+    <div class="mt-8 space-y-4">
+      <button (click)="loginAs('admin')" type="button" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+        {{ 'SIGN_IN_ADMIN' | translate }}
+      </button>
+      <button (click)="loginAs('technician')" type="button" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+        {{ 'SIGN_IN_TECHNICIAN' | translate }}
+      </button>
+    </div>
+  </div>
+</div>

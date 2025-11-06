@@ -1,0 +1,5 @@
+{
+  "name": "Equipment Maintenance Hub",
+  "description": "A web application for managing and maintaining equipment and tracking spare parts, designed to work with a Backend-as-a-Service like Supabase.",
+  "requestFramePermissions": []
+}

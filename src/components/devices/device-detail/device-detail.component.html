@@ -1,0 +1,200 @@
+@if (device(); as dev) {
+  <div class="mb-4">
+    <a routerLink="/devices" class="text-blue-600 hover:underline flex items-center">
+      <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      {{ 'BACK_TO_DEVICES' | translate }}
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Info Column -->
+    <div class="lg:col-span-2">
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">{{ dev.name }}</h1>
+                <p class="text-gray-500">{{ dev.type }} - {{ dev.location }}</p>
+            </div>
+            <span class="px-3 py-1 text-sm font-semibold rounded-full capitalize" [class]="getStatusClass(dev.status)">
+                {{ ('STATUS_' + dev.status.toUpperCase()) | translate }}
+            </span>
+        </div>
+
+        @if (dev.imageUrl) {
+          <div class="mt-6 border-t pt-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Fotka zariadenia</h2>
+            <img [src]="dev.imageUrl" [alt]="dev.name" class="max-w-full h-auto rounded-lg shadow-md max-h-96 object-cover">
+          </div>
+        }
+        
+        <div class="mt-6 border-t pt-6">
+          <h2 class="text-xl font-semibold text-gray-700 mb-4">{{ 'DEVICE_DETAILS' | translate }}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div><strong class="text-gray-600">{{ 'DEVICE_ID' | translate }}:</strong> {{ dev.id }}</div>
+            @if (dev.manufacturer) {
+              <div><strong class="text-gray-600">Výrobca:</strong> {{ dev.manufacturer }}</div>
+            }
+            <div><strong class="text-gray-600">{{ 'LOCATION' | translate }}:</strong> {{ dev.location }}</div>
+            <div><strong class="text-gray-600">{{ 'LAST_MAINTENANCE' | translate }}:</strong> {{ dev.lastMaintenance }}</div>
+            <div><strong class="text-gray-600">{{ 'NEXT_MAINTENANCE' | translate }}:</strong> {{ dev.nextMaintenance }}</div>
+            <div><strong class="text-gray-600">{{ 'DOWNTIME' | translate }}:</strong> {{ dev.downtime }}h</div>
+          </div>
+        </div>
+
+        <!-- Specifications Section -->
+        @if (dev.specifications && objectKeys(dev.specifications).length > 0) {
+          <div class="mt-6 border-t pt-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">📋 {{ 'SPECIFICATIONS' | translate }}</h2>
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                @for (key of objectKeys(dev.specifications!); track key) {
+                  <div class="flex justify-between border-b border-gray-200 pb-2">
+                    <strong class="text-gray-600">{{ key }}:</strong>
+                    <span class="text-gray-800">{{ dev.specifications![key] }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Electrical Inspection Section -->
+        <div class="mt-6 border-t pt-6">
+          <h2 class="text-xl font-semibold text-gray-700 mb-4">⚡ {{ 'ELECTRICAL_INSPECTION' | translate }}</h2>
+          
+          @if (dev.electricalInspectionDate && dev.electricalInspectionExpiry) {
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <strong class="text-gray-600">{{ 'INSPECTION_DATE' | translate }}:</strong>
+                  <p class="text-gray-800">{{ dev.electricalInspectionDate }}</p>
+                </div>
+                <div>
+                  <strong class="text-gray-600">{{ 'VALIDITY' | translate }}:</strong>
+                  <p class="text-gray-800">{{ dev.electricalInspectionPeriod }} {{ dev.electricalInspectionPeriod === 1 ? ('YEAR' | translate) : ('YEARS' | translate) }}</p>
+                </div>
+                <div>
+                  <strong class="text-gray-600">{{ 'EXPIRATION' | translate }}:</strong>
+                  <p class="text-gray-800" [class]="getInspectionExpiryClass(dev.electricalInspectionExpiry)">
+                    {{ dev.electricalInspectionExpiry }}
+                    @if (isInspectionExpired(dev.electricalInspectionExpiry)) {
+                      <span class="ml-1">⚠️</span>
+                    } @else if (isInspectionExpiringSoon(dev.electricalInspectionExpiry)) {
+                      <span class="ml-1">⏰</span>
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (authService.currentUser()?.role === 'admin') {
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'INSPECTION_DATE' | translate }} *</label>
+                <input type="date" #inspectionDate class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'VALIDITY' | translate }} *</label>
+                <select #inspectionPeriod class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="1">1 {{ 'YEAR' | translate }}</option>
+                  <option value="2">2 {{ 'YEARS' | translate }}</option>
+                  <option value="3">3 {{ 'YEARS' | translate }}</option>
+                  <option value="4">4 {{ 'YEARS' | translate }}</option>
+                  <option value="5">5 {{ 'YEARS' | translate }}</option>
+                  <option value="10">10 {{ 'YEARS' | translate }}</option>
+                </select>
+              </div>
+              <button 
+                (click)="updateElectricalInspection(inspectionDate.value, +inspectionPeriod.value)" 
+                class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                💾 {{ 'SAVE_INSPECTION' | translate }}
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="mt-6 border-t pt-6">
+          <h2 class="text-xl font-semibold text-gray-700 mb-4">{{ 'LOG_MAINTENANCE' | translate }}</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Typ údržby</label>
+              <div class="flex gap-4">
+                <label class="flex items-center cursor-pointer">
+                  <input type="radio" name="maintenanceType" value="scheduled" checked class="mr-2" #typeScheduled>
+                  <span class="text-sm">📅 Plánovaná údržba</span>
+                </label>
+                <label class="flex items-center cursor-pointer">
+                  <input type="radio" name="maintenanceType" value="emergency" class="mr-2" #typeEmergency>
+                  <span class="text-sm">🚨 Neodkladná údržba</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Trvanie údržby (minúty) *</label>
+              <input type="number" #duration min="15" step="5" value="30" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Minimálne 15 minút">
+              <p class="text-xs text-gray-500 mt-1">Minimálne trvanie: 15 minút</p>
+            </div>
+            <textarea #notes [placeholder]="'MAINTENANCE_NOTES_PLACEHOLDER' | translate" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            <button (click)="logMaintenance(notes.value, typeScheduled.checked ? 'scheduled' : 'emergency', +duration.value); notes.value = ''; duration.value = '30'; typeScheduled.checked = true" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">{{ 'COMPLETE_LOG_MAINTENANCE' | translate }}</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    
+    <!-- QR Code and Actions Column -->
+    <div class="lg:col-span-1">
+      <div class="bg-white p-6 rounded-lg shadow-md text-center">
+        <h2 class="text-xl font-semibold text-gray-700 mb-4">{{ 'DEVICE_QR_CODE' | translate }}</h2>
+        <div class="flex justify-center">
+            @if(qrCodeData()) {
+              <app-qr-code [data]="qrCodeData()"></app-qr-code>
+            }
+        </div>
+        <p class="mt-4 text-xs text-gray-500">{{ 'SCAN_QR_CODE_INFO' | translate }}</p>
+        
+        <div class="mt-6 border-t pt-6 space-y-3">
+          <h3 class="text-lg font-semibold text-gray-700">{{ 'ACTIONS' | translate }}</h3>
+
+          @if (dev.status === 'operational') {
+            <button (click)="updateStatus('maintenance')" class="w-full px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors">{{ 'SET_STATUS_MAINTENANCE' | translate }}</button>
+            <button (click)="updateStatus('offline')" class="w-full px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors">{{ 'SET_STATUS_OFFLINE' | translate }}</button>
+          } @else {
+            <button (click)="updateStatus('operational')" class="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">{{ 'SET_STATUS_OPERATIONAL' | translate }}</button>
+          }
+
+          @if (dev.manualUrl && !dev.manualUrl.includes('example.com')) {
+            <a [href]="dev.manualUrl" target="_blank" class="block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+              📄 {{ 'VIEW_MANUAL' | translate }}
+            </a>
+          } @else {
+            <div class="text-center text-gray-400 text-sm py-2">
+              Manuál nie je k dispozícii
+            </div>
+          }
+          
+          @if (authService.isAdmin()) {
+            <div class="border-t pt-3">
+              <label class="block w-full">
+                <span class="text-xs text-gray-600 mb-1 block">Nahrať manuál (PDF)</span>
+                <input 
+                  #fileInput
+                  type="file" 
+                  accept="application/pdf"
+                  (change)="uploadManual($event)"
+                  class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                />
+              </label>
+            </div>
+            <button (click)="decommissionDevice()" class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">{{ 'DECOMMISSION_DEVICE' | translate }}</button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="text-center py-10">
+    <p class="text-gray-500">{{ 'LOADING_DEVICE_DETAILS' | translate }}</p>
+  </div>
+}

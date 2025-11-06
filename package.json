@@ -1,0 +1,55 @@
+{
+  "name": "equipment-maintenance-hub",
+  "version": "1.0.0",
+  "description": "Komplexná Angular aplikácia pre profesionálnu správu údržby priemyselných zariadení s Supabase backendom",
+  "author": "Equipment Maintenance Team",
+  "license": "MIT",
+  "keywords": [
+    "equipment",
+    "maintenance",
+    "angular",
+    "supabase",
+    "typescript",
+    "inventory",
+    "downtime-tracking",
+    "industrial"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/equipment-maintenance-hub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/equipment-maintenance-hub/issues"
+  },
+  "homepage": "https://github.com/yourusername/equipment-maintenance-hub#readme",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "dev": "ng serve",
+    "start": "ng serve",
+    "build": "ng build",
+    "build:prod": "ng build --configuration=production",
+    "preview": "ng serve --configuration=production",
+    "test": "echo \"No tests configured yet\" && exit 0"
+  },
+  "dependencies": {
+    "@angular/build": "^20.3.0",
+    "@angular/cli": "^20.3.0",
+    "@angular/common": "^20.3.0",
+    "@angular/compiler": "^20.3.0",
+    "@angular/compiler-cli": "^20.3.0",
+    "@angular/core": "^20.3.0",
+    "@angular/forms": "^20.3.9",
+    "@angular/platform-browser": "^20.3.0",
+    "@angular/router": "^20.3.9",
+    "@supabase/supabase-js": "^2.78.0",
+    "rxjs": "^7.8.2",
+    "tailwindcss": "latest",
+    "zone.js": "^0.15.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

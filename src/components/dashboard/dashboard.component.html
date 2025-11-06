@@ -1,0 +1,131 @@
+<h1 class="text-3xl font-semibold text-gray-800 mb-6">{{ 'DASHBOARD' | translate }}</h1>
+
+@if (devices().length > 0) {
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+      <div class="bg-green-100 p-3 rounded-full">
+        <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <div class="ml-4">
+        <p class="text-sm font-medium text-gray-500">{{ 'OPERATIONAL' | translate }}</p>
+        <p class="text-2xl font-bold text-gray-800">{{ operationalDevices() }}</p>
+      </div>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+      <div class="bg-yellow-100 p-3 rounded-full">
+        <svg class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      </div>
+      <div class="ml-4">
+        <p class="text-sm font-medium text-gray-500">{{ 'MAINTENANCE_STATUS' | translate }}</p>
+        <p class="text-2xl font-bold text-gray-800">{{ maintenanceDevices() }}</p>
+      </div>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+      <div class="bg-red-100 p-3 rounded-full">
+        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+      </div>
+      <div class="ml-4">
+        <p class="text-sm font-medium text-gray-500">{{ 'OFFLINE' | translate }}</p>
+        <p class="text-2xl font-bold text-gray-800">{{ offlineDevices() }}</p>
+      </div>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+      <div class="bg-blue-100 p-3 rounded-full">
+        <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      </div>
+      <div class="ml-4">
+        <p class="text-sm font-medium text-gray-500">{{ 'TOTAL_DOWNTIME' | translate }} (h)</p>
+        <p class="text-2xl font-bold text-gray-800">{{ totalDowntime() }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Downtime Tracking -->
+  <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">📊 {{ 'MONTHLY_DOWNTIME' | translate }} - {{ currentMonth }}</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="border-l-4 border-blue-500 pl-4">
+        <p class="text-sm font-medium text-gray-500">{{ 'TOTAL_DOWNTIME_HOURS' | translate }}</p>
+        <p class="text-3xl font-bold text-gray-800">{{ monthlyDowntime().totalHours }}h</p>
+        <p class="text-xs text-gray-500 mt-1">{{ monthlyDowntime().totalMinutes }} minút z {{ monthlyDowntime().logsCount }} záznamov</p>
+      </div>
+      <div class="border-l-4 border-purple-500 pl-4">
+        <p class="text-sm font-medium text-gray-500">{{ 'AVERAGE_PERCENTAGE' | translate }}</p>
+        <p class="text-3xl font-bold" [class]="downtimePercentage().isOverTarget ? 'text-red-600' : 'text-green-600'">
+          {{ downtimePercentage().current }}%
+        </p>
+        <p class="text-xs text-gray-500 mt-1">z {{ downtimePercentage().workingHours }}h ({{ downtimePercentage().activeDevicesCount }} {{ 'ACTIVE_DEVICES' | translate }})</p>
+      </div>
+      <div class="border-l-4 pl-4" [class]="downtimePercentage().isOverTarget ? 'border-red-500' : 'border-green-500'">
+        <p class="text-sm font-medium text-gray-500">{{ 'TARGET' | translate }} / {{ 'STATUS' | translate }}</p>
+        <p class="text-3xl font-bold" [class]="downtimePercentage().isOverTarget ? 'text-red-600' : 'text-green-600'">
+          {{ downtimePercentage().target }}%
+        </p>
+        @if (downtimePercentage().isOverTarget) {
+          <p class="text-xs text-red-600 mt-1 font-semibold">⚠️ {{ 'OVER_TARGET' | translate }}!</p>
+        } @else {
+          <p class="text-xs text-green-600 mt-1 font-semibold">✓ {{ 'IN_TARGET' | translate }}</p>
+        }
+      </div>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="mt-6">
+      <div class="flex justify-between text-sm text-gray-600 mb-2">
+        <span>{{ 'PROGRESS' | translate }}</span>
+        <span>{{ downtimePercentage().current }}% / {{ downtimePercentage().target }}%</span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-4">
+        <div 
+          class="h-4 rounded-full transition-all duration-300"
+          [class]="downtimePercentage().isOverTarget ? 'bg-red-500' : 'bg-green-500'"
+          [style.width.%]="Math.min(parseFloat(downtimePercentage().current) / parseFloat(downtimePercentage().target) * 100, 100)">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
+    <h2 class="text-xl font-semibold text-gray-800">{{ 'RECENT_MAINTENANCE_ACTIVITY' | translate }}</h2>
+    <div class="mt-4">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="text-xs text-gray-500 uppercase border-b">
+            <th class="py-2 px-4">{{ 'DEVICE' | translate }}</th>
+            <th class="py-2 px-4">{{ 'TECHNICIAN' | translate }}</th>
+            <th class="py-2 px-4">{{ 'DATE' | translate }}</th>
+            <th class="py-2 px-4">{{ 'TYPE' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (log of recentLogs(); track log.id) {
+            <tr class="border-b hover:bg-gray-50">
+              <td class="py-3 px-4 text-sm text-gray-800">{{ log.deviceName }}</td>
+              <td class="py-3 px-4 text-sm text-gray-600">{{ log.technician }}</td>
+              <td class="py-3 px-4 text-sm text-gray-600">{{ log.date }}</td>
+              <td class="py-3 px-4 text-sm">
+                @if (log.type === 'scheduled') {
+                  <span class="px-2 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">{{ 'SCHEDULED' | translate }}</span>
+                } @else {
+                  <span class="px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">{{ 'EMERGENCY' | translate }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+} @else {
+    <div class="flex items-center justify-center h-64">
+        <div class="text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">{{ 'LOADING_DATA' | translate }}</h3>
+            <p class="mt-1 text-sm text-gray-500">{{ 'PLEASE_WAIT' | translate }}</p>
+        </div>
+    </div>
+}

@@ -1,0 +1,183 @@
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-semibold text-gray-800">{{ 'DEVICES' | translate }}</h1>
+  <div class="flex gap-2">
+    <button (click)="exportDevices()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2">
+      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      {{ 'EXPORT_DEVICES' | translate }}
+    </button>
+    <button (click)="toggleAddForm()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+      {{ showAddForm() ? 'CANCEL' : 'ADD_NEW_DEVICE' | translate }}
+    </button>
+  </div>
+</div>
+
+@if (showAddForm()) {
+  <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <h2 class="text-xl font-semibold mb-4">Pridať nové zariadenie</h2>
+    <form (submit)="addDevice($event)">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">ID zariadenia *</label>
+          <input type="text" name="customId" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" placeholder="napr. CNC-001, LASER-05">
+          <p class="text-xs text-gray-500 mt-1">Unikátny identifikátor pre QR kód a evidenciu</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Názov zariadenia *</label>
+          <input type="text" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Typ *</label>
+          <input type="text" name="type" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Výrobca</label>
+          <input type="text" name="manufacturer" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" placeholder="napr. Siemens, Fanuc, Haas">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Umiestnenie *</label>
+          <input type="text" name="location" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Stav</label>
+          <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+            <option value="operational">{{ 'STATUS_OPERATIONAL' | translate }}</option>
+            <option value="maintenance">{{ 'STATUS_MAINTENANCE' | translate }}</option>
+            <option value="offline">{{ 'STATUS_OFFLINE' | translate }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Posledná údržba *</label>
+          <input type="date" name="lastMaintenance" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'MAINTENANCE_PERIOD' | translate }}</label>
+          <select name="maintenancePeriod" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+            <option value="">{{ 'SELECT_PERIOD' | translate }}</option>
+            <option value="monthly">{{ 'MONTHLY' | translate }}</option>
+            <option value="quarterly">{{ 'QUARTERLY' | translate }}</option>
+            <option value="semi-annually">{{ 'SEMI_ANNUALLY' | translate }}</option>
+            <option value="annually">{{ 'ANNUALLY' | translate }}</option>
+          </select>
+          <p class="text-xs text-gray-500 mt-1">{{ 'AUTO_CALCULATES_NEXT' | translate }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'NEXT_MAINTENANCE' | translate }}</label>
+          <input type="date" name="nextMaintenance" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+          <p class="text-xs text-gray-500 mt-1">{{ 'CALCULATED_AUTOMATICALLY' | translate }}</p>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Fotka zariadenia</label>
+          <input type="file" name="deviceImage" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+          <p class="text-xs text-gray-500 mt-1">Maximálna veľkosť: 5 MB. Formáty: JPG, PNG, WebP</p>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">URL manuálu</label>
+          <input type="url" name="manualUrl" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" placeholder="https://...">
+        </div>
+        
+        <!-- Špecifikácie zariadenia -->
+        <div class="md:col-span-2 border-t pt-4 mt-2">
+          <div class="flex justify-between items-center mb-3">
+            <label class="block text-sm font-medium text-gray-700">{{ 'SPECIFICATIONS' | translate }}</label>
+            <button type="button" (click)="addSpecificationField()" class="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
+              + {{ 'ADD_FIELD' | translate }}
+            </button>
+          </div>
+          <p class="text-xs text-gray-500 mb-3">{{ 'SPECIFICATIONS_HELP' | translate }}</p>
+          
+          <div class="space-y-2">
+            @for (spec of specificationFields(); track $index) {
+              <div class="flex gap-2 items-start">
+                <input 
+                  type="text" 
+                  [value]="spec.key"
+                  (input)="updateSpecificationKey($index, $event)"
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" 
+                  placeholder="{{ 'SPEC_KEY_PLACEHOLDER' | translate }}">
+                <input 
+                  type="text" 
+                  [value]="spec.value"
+                  (input)="updateSpecificationValue($index, $event)"
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" 
+                  placeholder="{{ 'SPEC_VALUE_PLACEHOLDER' | translate }}">
+                <button type="button" (click)="removeSpecificationField($index)" class="px-3 py-2 text-red-600 hover:bg-red-50 rounded">
+                  ✕
+                </button>
+              </div>
+            }
+            @if (specificationFields().length === 0) {
+              <p class="text-sm text-gray-400 italic">{{ 'NO_SPECIFICATIONS' | translate }}</p>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 flex justify-end gap-2">
+        <button type="button" (click)="toggleAddForm()" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+          Zrušiť
+        </button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          Pridať zariadenie
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<div class="bg-white p-6 rounded-lg shadow-md">
+  <div class="mb-4">
+    <input 
+      type="text" 
+      [placeholder]="'SEARCH_DEVICES' | translate" 
+      (input)="onSearch($event)"
+      class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+  </div>
+  
+  <div class="overflow-x-auto">
+    @if (devices().length > 0) {
+      <table class="w-full text-left">
+        <thead>
+          <tr class="text-xs text-gray-500 uppercase border-b">
+            <th class="py-3 px-4">{{ 'DEVICE_NAME' | translate }}</th>
+            <th class="py-3 px-4">{{ 'TYPE' | translate }}</th>
+            <th class="py-3 px-4">{{ 'LOCATION' | translate }}</th>
+            <th class="py-3 px-4">{{ 'STATUS' | translate }}</th>
+            <th class="py-3 px-4">{{ 'DOWNTIME' | translate }}</th>
+            <th class="py-3 px-4">{{ 'NEXT_MAINTENANCE' | translate }}</th>
+            <th class="py-3 px-4"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y">
+          @for (device of filteredDevices(); track device.id) {
+            <tr class="hover:bg-gray-50">
+              <td class="py-3 px-4 font-medium text-gray-800">{{ device.name }}</td>
+              <td class="py-3 px-4 text-gray-600">{{ device.type }}</td>
+              <td class="py-3 px-4 text-gray-600">{{ device.location }}</td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-1 text-xs font-semibold rounded-full capitalize" [class]="getStatusClass(device.status)">
+                  {{ ('STATUS_' + device.status.toUpperCase()) | translate }}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-gray-600">{{ device.downtime }}</td>
+              <td class="py-3 px-4 text-gray-600">{{ device.nextMaintenance }}</td>
+              <td class="py-3 px-4 text-right">
+                <a [routerLink]="['/devices', device.id]" class="text-blue-600 hover:underline">{{ 'DETAILS' | translate }}</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <div class="text-center py-10">
+        <p class="text-gray-500">{{ 'LOADING_DEVICES' | translate }}</p>
+      </div>
+    }
+    @if (filteredDevices().length === 0 && devices().length > 0) {
+      <div class="text-center py-10">
+        <p class="text-gray-500">{{ 'NO_DEVICES_FOUND' | translate }}</p>
+      </div>
+    }
+  </div>
+</div>

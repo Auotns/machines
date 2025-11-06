@@ -1,0 +1,166 @@
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-semibold text-gray-800">{{ 'SPARE_PARTS_INVENTORY' | translate }}</h1>
+  @if (authService.isAdmin()) {
+    <button (click)="toggleAddForm()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+      {{ showAddForm() ? 'CANCEL' : 'ADD_NEW_PART' | translate }}
+    </button>
+  }
+</div>
+
+@if (showAddForm()) {
+  <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <h2 class="text-xl font-semibold mb-4">{{ 'ADD_NEW_PART' | translate }}</h2>
+    <form (submit)="addPart($event)">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'PART_NAME' | translate }}</label>
+          <input type="text" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'SKU' | translate }}</label>
+          <input type="text" name="sku" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'QUANTITY' | translate }}</label>
+          <input type="number" name="quantity" required min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'LOCATION' | translate }}</label>
+          <input type="text" name="location" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Zariadenie (nepovinné)</label>
+          <select name="deviceId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+            <option value="">-- Všeobecný diel (nie je priradený k zariadeniu) --</option>
+            @for (device of devices(); track device.id) {
+              <option [value]="device.id">{{ device.name }} ({{ device.type }})</option>
+            }
+          </select>
+          <p class="text-xs text-gray-500 mt-1">Vyberte zariadenie ak diel patrí k špecifickému zariadeniu</p>
+        </div>
+      </div>
+      <div class="mt-4 flex justify-end gap-2">
+        <button type="button" (click)="toggleAddForm()" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+          Cancel
+        </button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          Add Part
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<div class="bg-white p-6 rounded-lg shadow-md">
+  <div class="mb-4">
+    <input 
+      type="text" 
+      placeholder="Hľadať diely (názov, SKU, umiestnenie, zariadenie)..." 
+      (input)="onSearch($event)"
+      class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+  </div>
+  
+  <div class="overflow-x-auto">
+    @if (parts().length > 0) {
+      <table class="w-full text-left">
+        <thead>
+          <tr class="text-xs text-gray-500 uppercase border-b">
+            <th class="py-3 px-4">{{ 'PART_NAME' | translate }}</th>
+            <th class="py-3 px-4">{{ 'SKU' | translate }}</th>
+            <th class="py-3 px-4">Zariadenie</th>
+            <th class="py-3 px-4">{{ 'LOCATION' | translate }}</th>
+            <th class="py-3 px-4 text-right">{{ 'QUANTITY' | translate }}</th>
+            <th class="py-3 px-4">Posledná zmena</th>
+            <th class="py-3 px-4 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y">
+          @for (part of filteredParts(); track part.id) {
+            <tr class="hover:bg-gray-50">
+              <td class="py-3 px-4 font-medium text-gray-800">{{ part.name }}</td>
+              <td class="py-3 px-4 text-gray-600">{{ part.sku }}</td>
+              <td class="py-3 px-4 text-gray-600">
+                @if (part.deviceName) {
+                  <span class="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">{{ part.deviceName }}</span>
+                } @else {
+                  <span class="text-gray-400 text-sm">Všeobecný</span>
+                }
+              </td>
+              <td class="py-3 px-4 text-gray-600">{{ part.location }}</td>
+              <td class="py-3 px-4 text-right" [class]="getQuantityClass(part.quantity)">
+                {{ part.quantity }}
+              </td>
+              <td class="py-3 px-4 text-xs">
+                @if (part.lastChange) {
+                  <div class="space-y-1">
+                    <div class="text-gray-600">
+                      {{ part.lastChange.date | date:'dd.MM.yyyy HH:mm' }}
+                    </div>
+                    <div class="text-gray-500">
+                      {{ part.lastChange.changedBy }}
+                    </div>
+                    @if (part.lastChange.notes) {
+                      <div class="text-blue-600 italic">
+                        "{{ part.lastChange.notes }}"
+                      </div>
+                    }
+                    <div class="inline-block px-2 py-0.5 rounded text-xs"
+                         [ngClass]="{
+                           'bg-green-100 text-green-800': part.lastChange.changeType === 'increase',
+                           'bg-red-100 text-red-800': part.lastChange.changeType === 'decrease',
+                           'bg-blue-100 text-blue-800': part.lastChange.changeType === 'set'
+                         }">
+                      {{ part.lastChange.quantityBefore }} → {{ part.lastChange.quantityAfter }}
+                    </div>
+                  </div>
+                } @else {
+                  <span class="text-gray-400">Bez zmien</span>
+                }
+              </td>
+              <td class="py-3 px-4">
+                <div class="flex items-center justify-center gap-2">
+                  <button 
+                    (click)="decreaseQuantity(part.id, part.quantity)"
+                    class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                    title="Znížiť množstvo">
+                    −
+                  </button>
+                  @if (authService.isAdmin()) {
+                    <button 
+                      (click)="setQuantity(part.id, part.quantity)"
+                      class="px-2 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
+                      title="Nastaviť množstvo">
+                      ✎
+                    </button>
+                    <button 
+                      (click)="deletePart(part.id, part.name)"
+                      class="px-2 py-1 bg-red-700 text-white rounded hover:bg-red-800 text-sm"
+                      title="Vymazať diel">
+                      🗑️
+                    </button>
+                  }
+                  <button 
+                    (click)="increaseQuantity(part.id, part.quantity)"
+                    class="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                    title="Zvýšiť množstvo">
+                    +
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <div class="text-center py-10">
+        <p class="text-gray-500">{{ 'LOADING_PARTS' | translate }}</p>
+      </div>
+    }
+    @if (filteredParts().length === 0 && parts().length > 0) {
+      <div class="text-center py-10">
+        <p class="text-gray-500">{{ 'NO_PARTS_FOUND' | translate }}</p>
+      </div>
+    }
+  </div>
+</div>

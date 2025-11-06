@@ -1,0 +1,40 @@
+-- Riešenie problému s nahrávaním PDF manuálov do Supabase Storage
+-- 
+-- POZNÁMKA: RLS na storage.objects sa nedá vypnúť cez SQL (chyba: must be owner)
+-- 
+-- RIEŠENIE - Použite Supabase Dashboard:
+-- 
+-- 1. Prejdite na: https://qqkcnogssccsekhemyua.supabase.co
+-- 2. V ľavom menu → Storage
+-- 3. Ak bucket "device-manuals" existuje:
+--    - Kliknite na bucket "device-manuals"
+--    - Kliknite na Configuration (ikona ozubeného kolieska)
+--    - Kliknite "Edit bucket"
+--    - Zaškrtnite "Public bucket" ✅
+--    - Uložte
+-- 
+-- 4. Ak bucket "device-manuals" NEEXISTUJE:
+--    - Kliknite "New bucket"
+--    - Name: device-manuals
+--    - Public bucket: ✅ (zaškrtnite!)
+--    - File size limit: 10485760 (10MB)
+--    - Allowed MIME types: application/pdf
+--    - Kliknite "Create bucket"
+--
+-- 5. Prejdite do Policies:
+--    - V Storage → device-manuals → Policies
+--    - Ak sú nejaké politiky, VYMAZAJTE ICH VŠETKY
+--    - Kliknite "New Policy" → "For full customization"
+--    - Policy name: Allow all operations
+--    - Policy definition: true (povolí všetko)
+--    - Allowed operations: SELECT, INSERT, UPDATE, DELETE (všetky)
+--    - Kliknite "Save policy"
+--
+-- ALTERNATÍVNE (jednoduchšie):
+-- Kliknite na "New policy" → "Get started quickly" → "Allow public access"
+-- a potom pridajte aj "Allow authenticated uploads"
+--
+-- Po týchto krokoch by upload mal fungovať!
+
+-- Overiť existujúce buckety
+SELECT * FROM storage.buckets;
