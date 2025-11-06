@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationService } from '../../core/services/notification.service';
@@ -6,7 +7,7 @@ import { NotificationService } from '../../core/services/notification.service';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, FormsModule],
   templateUrl: './login.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -14,33 +15,37 @@ export class LoginComponent {
   authService = inject(AuthService);
   notificationService = inject(NotificationService);
 
-  loginAs(role: 'admin' | 'technician') {
-    console.log('=== LOGIN STARTED ===');
-    console.log('Role:', role);
-    
-    // Použiť predvolené heslo pre demo účely
-    const password = 'password123';
-    
-    console.log('Calling authService.login()...');
-    const loginObservable = this.authService.login(role, password);
-    console.log('Observable created:', loginObservable);
-    
-    console.log('Subscribing to login observable...');
-    loginObservable.subscribe({
+  email = signal('');
+  password = signal('');
+  isLoading = signal(false);
+
+  login() {
+    const emailValue = this.email().trim();
+    const passwordValue = this.password().trim();
+
+    if (!emailValue || !passwordValue) {
+      this.notificationService.error('Vyplňte email a heslo');
+      return;
+    }
+
+    this.isLoading.set(true);
+
+    // Určiť rolu z emailu
+    const role = emailValue.includes('admin') ? 'admin' : 'technician';
+
+    this.authService.login(role, passwordValue).subscribe({
       next: (success) => {
-        console.log('Login observable NEXT called, success:', success);
+        this.isLoading.set(false);
         if (success) {
-          this.notificationService.success(`Úspešne prihlásený ako ${role}`);
+          this.notificationService.success('Prihlásenie úspešné');
         } else {
-          this.notificationService.error('Prihlásenie zlyhalo. Skontrolujte či existuje používateľ v Supabase.');
+          this.notificationService.error('Nesprávne prihlasovacie údaje');
         }
       },
       error: (error) => {
-        console.error('Login observable ERROR called:', error);
-        this.notificationService.error('Chyba pri prihlasovaní. Skontrolujte konzolu a Supabase nastavenia.');
-      },
-      complete: () => {
-        console.log('Login observable COMPLETE called');
+        this.isLoading.set(false);
+        console.error('Login error:', error);
+        this.notificationService.error('Chyba pri prihlasovaní');
       }
     });
   }

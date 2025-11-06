@@ -16,9 +16,13 @@ const translations = {
 
     // Login
     LOGIN_TITLE: 'Equipment Maintenance Hub',
-    LOGIN_SUBTITLE: 'Select a role to sign in',
+    LOGIN_SUBTITLE: 'Enter your credentials to sign in',
     SIGN_IN_ADMIN: 'Sign in as Admin',
     SIGN_IN_TECHNICIAN: 'Sign in as Technician',
+    SIGN_IN: 'Sign In',
+    EMAIL: 'Email',
+    PASSWORD: 'Password',
+    LOADING: 'Loading...',
     
     // Dashboard
     OPERATIONAL: 'Operational',
@@ -151,9 +155,13 @@ const translations = {
 
     // Login
     LOGIN_TITLE: 'Centrum Údržby Zariadení',
-    LOGIN_SUBTITLE: 'Pre prihlásenie si vyberte rolu',
+    LOGIN_SUBTITLE: 'Zadajte prihlasovacie údaje',
     SIGN_IN_ADMIN: 'Prihlásiť sa ako Admin',
     SIGN_IN_TECHNICIAN: 'Prihlásiť sa ako Technik',
+    SIGN_IN: 'Prihlásiť sa',
+    EMAIL: 'Email',
+    PASSWORD: 'Heslo',
+    LOADING: 'Načítavam...',
     
     // Dashboard
     OPERATIONAL: 'V prevádzke',
@@ -286,9 +294,13 @@ const translations = {
 
     // Login
     LOGIN_TITLE: 'Gerätewartungs-Hub',
-    LOGIN_SUBTITLE: 'Wählen Sie eine Rolle zum Anmelden',
+    LOGIN_SUBTITLE: 'Geben Sie Ihre Anmeldedaten ein',
     SIGN_IN_ADMIN: 'Als Admin anmelden',
     SIGN_IN_TECHNICIAN: 'Als Techniker anmelden',
+    SIGN_IN: 'Anmelden',
+    EMAIL: 'E-Mail',
+    PASSWORD: 'Passwort',
+    LOADING: 'Lädt...',
     
     // Dashboard
     OPERATIONAL: 'Betriebsbereit',
