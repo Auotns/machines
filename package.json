@@ -30,7 +30,7 @@
     "build": "ng build",
     "build:prod": "ng build --configuration=production --base-href /machines/",
     "preview": "ng serve --configuration=production",
-    "deploy": "npm run build:prod && gh-pages -d dist/equipment-maintenance-hub/browser",
+    "deploy": "npm run build:prod && gh-pages -d dist",
     "test": "echo \"No tests configured yet\" && exit 0"
   },
   "dependencies": {
