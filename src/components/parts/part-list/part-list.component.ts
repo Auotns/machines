@@ -77,9 +77,9 @@ export class PartListComponent {
     this.searchTerm.set(input.value);
   }
 
-  getQuantityClass(quantity: number): string {
-    if (quantity < 10) return 'text-red-600 font-bold';
-    if (quantity < 25) return 'text-yellow-600';
+  getQuantityClass(quantity: number, minQuantity: number = 10): string {
+    if (quantity < minQuantity) return 'text-red-600 font-bold';
+    if (quantity < minQuantity * 1.5) return 'text-yellow-600';
     return 'text-gray-800';
   }
 
@@ -176,6 +176,7 @@ export class PartListComponent {
       name: formData.get('name') as string,
       sku: formData.get('sku') as string,
       quantity: parseInt(formData.get('quantity') as string),
+      minQuantity: parseInt(formData.get('minQuantity') as string) || 10,
       location: formData.get('location') as string,
       deviceId: deviceId || undefined,
       deviceName: selectedDevice?.name || undefined,

@@ -28,7 +28,7 @@ export class DashboardComponent {
   maintenanceDevices = computed(() => this.devices().filter(d => d.status === 'maintenance').length);
   offlineDevices = computed(() => this.devices().filter(d => d.status === 'offline').length);
   
-  lowStockParts = computed(() => this.parts().filter(p => p.quantity < 10).length);
+  lowStockParts = computed(() => this.parts().filter(p => p.quantity < p.minQuantity).length);
 
   // Celkový downtime zo všetkých zariadení
   totalDowntime = computed(() => {

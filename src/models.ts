@@ -29,6 +29,7 @@ export interface SparePart {
   name: string;
   sku: string;
   quantity: number;
+  minQuantity: number; // Minimálne požadované množstvo
   location: string;
   deviceId?: string; // Optional: ID zariadenia ku ktorému patrí
   deviceName?: string; // Optional: Názov zariadenia

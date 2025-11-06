@@ -79,6 +79,7 @@ const translations = {
     PART_NAME: 'Name',
     SKU: 'SKU',
     QUANTITY: 'Quantity',
+    MIN_QUANTITY: 'Min. Quantity',
     LOADING_PARTS: 'Loading parts...',
     NO_PARTS_FOUND: 'No parts found for your search.',
 
@@ -220,6 +221,7 @@ const translations = {
     PART_NAME: 'Názov',
     SKU: 'SKU',
     QUANTITY: 'Množstvo',
+    MIN_QUANTITY: 'Min. množstvo',
     LOADING_PARTS: 'Načítavam diely...',
     NO_PARTS_FOUND: 'Pre vaše vyhľadávanie sa nenašli žiadne diely.',
 
@@ -361,7 +363,8 @@ const translations = {
     PART_NAME: 'Name',
     SKU: 'SKU',
     QUANTITY: 'Menge',
-    LOADING_PARTS: 'Teile werden geladen...',
+    MIN_QUANTITY: 'Min. Menge',
+    LOADING_PARTS: 'Ersatzteile werden geladen...',
     NO_PARTS_FOUND: 'Für Ihre Suche wurden keine Teile gefunden.',
 
     // Maintenance List
