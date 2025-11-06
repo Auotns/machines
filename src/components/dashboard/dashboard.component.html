@@ -87,37 +87,50 @@
   </div>
 
   <!-- Recent Activity -->
-  <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
-    <h2 class="text-xl font-semibold text-gray-800">{{ 'RECENT_MAINTENANCE_ACTIVITY' | translate }}</h2>
-    <div class="mt-4">
-      <table class="w-full text-left">
-        <thead>
-          <tr class="text-xs text-gray-500 uppercase border-b">
-            <th class="py-2 px-4">{{ 'DEVICE' | translate }}</th>
-            <th class="py-2 px-4">{{ 'TECHNICIAN' | translate }}</th>
-            <th class="py-2 px-4">{{ 'DATE' | translate }}</th>
-            <th class="py-2 px-4">{{ 'TYPE' | translate }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (log of recentLogs(); track log.id) {
-            <tr class="border-b hover:bg-gray-50">
-              <td class="py-3 px-4 text-sm text-gray-800">{{ log.deviceName }}</td>
-              <td class="py-3 px-4 text-sm text-gray-600">{{ log.technician }}</td>
-              <td class="py-3 px-4 text-sm text-gray-600">{{ log.date }}</td>
-              <td class="py-3 px-4 text-sm">
-                @if (log.type === 'scheduled') {
-                  <span class="px-2 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">{{ 'SCHEDULED' | translate }}</span>
-                } @else {
-                  <span class="px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">{{ 'EMERGENCY' | translate }}</span>
-                }
-              </td>
+  @if (recentLogs().length > 0) {
+    <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold text-gray-800">{{ 'RECENT_MAINTENANCE_ACTIVITY' | translate }}</h2>
+      <div class="mt-4">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="text-xs text-gray-500 uppercase border-b">
+              <th class="py-2 px-4">{{ 'DEVICE' | translate }}</th>
+              <th class="py-2 px-4">{{ 'TECHNICIAN' | translate }}</th>
+              <th class="py-2 px-4">{{ 'DATE' | translate }}</th>
+              <th class="py-2 px-4">{{ 'TYPE' | translate }}</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (log of recentLogs(); track log.id) {
+              <tr class="border-b hover:bg-gray-50">
+                <td class="py-3 px-4 text-sm text-gray-800">{{ log.deviceName }}</td>
+                <td class="py-3 px-4 text-sm text-gray-600">{{ log.technician }}</td>
+                <td class="py-3 px-4 text-sm text-gray-600">{{ log.date }}</td>
+                <td class="py-3 px-4 text-sm">
+                  @if (log.type === 'scheduled') {
+                    <span class="px-2 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">{{ 'SCHEDULED' | translate }}</span>
+                  } @else {
+                    <span class="px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">{{ 'EMERGENCY' | translate }}</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
+  } @else {
+    <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ 'RECENT_MAINTENANCE_ACTIVITY' | translate }}</h2>
+      <div class="text-center py-8 text-gray-500">
+        <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        <p>{{ 'NO_MAINTENANCE_LOGS_YET' | translate }}</p>
+        <p class="text-sm mt-2">{{ 'ADD_MAINTENANCE_LOG_FROM_DEVICE_DETAIL' | translate }}</p>
+      </div>
+    </div>
+  }
 } @else {
     <div class="flex items-center justify-center h-64">
         <div class="text-center">
