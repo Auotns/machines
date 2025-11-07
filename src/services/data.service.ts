@@ -968,6 +968,17 @@ export class DataService {
         
         if (!res.ok) {
           console.error('❌ Server error response:', responseText);
+          
+          // Parse error for user-friendly message
+          try {
+            const errorData = JSON.parse(responseText);
+            if (errorData.code === '23505' && errorData.message?.includes('spare_parts_sku_key')) {
+              throw new Error('SKU už existuje. Použite iné SKU pre tento diel.');
+            }
+          } catch (parseError) {
+            // If parsing fails, throw generic error
+          }
+          
           throw new Error(`HTTP ${res.status}: ${responseText}`);
         }
         

@@ -219,7 +219,16 @@ export class PartListComponent {
       },
       error: (err) => {
         console.error('❌ Error adding part:', err);
-        alert('Error adding part: ' + err.message);
+        // Extract user-friendly message
+        let errorMessage = 'Chyba pri pridávaní dielu';
+        if (err.message) {
+          if (err.message.includes('SKU už existuje')) {
+            errorMessage = 'SKU už existuje v databáze. Zadajte jedinečné SKU.';
+          } else {
+            errorMessage = err.message;
+          }
+        }
+        alert(errorMessage);
       }
     });
   }
