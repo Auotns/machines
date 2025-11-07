@@ -754,7 +754,7 @@ export class DataService {
     const tokenData = JSON.parse(token);
     
     return from(
-      fetch(`${environment.supabase.url}/rest/v1/spare_parts?order=created_at.desc`, {
+      fetch(`${environment.supabase.url}/rest/v1/spare_parts?select=*,devices:device_id(name)&order=created_at.desc`, {
         headers: {
           'apikey': environment.supabase.anonKey,
           'Authorization': `Bearer ${tokenData.access_token}`,
@@ -763,7 +763,7 @@ export class DataService {
       }).then(res => res.json())
     ).pipe(
       tap(data => console.log('✅ Parts data:', data)),
-      map((data: any[]) => (data || []).map(this.mapPartFromDb)),
+      map((data: any[]) => (data || []).map(part => this.mapPartFromDb(part))),
       tap(parts => this.parts.set(parts)),
       catchError(error => {
         console.error('❌ Error loading parts:', error);
@@ -784,7 +784,7 @@ export class DataService {
       minQuantity: dbPart.min_quantity || 10,
       location: dbPart.location,
       deviceId: dbPart.device_id || undefined,
-      deviceName: dbPart.device_name || undefined,
+      deviceName: dbPart.devices?.name || dbPart.device_name || undefined,
     };
   }
 
