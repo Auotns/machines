@@ -21,6 +21,11 @@
             "assets": [
               {
                 "glob": "404.html",
+                "input": ".",
+                "output": "."
+              },
+              {
+                "glob": "404.html",
                 "input": "src",
                 "output": "."
               }
