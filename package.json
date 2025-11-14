@@ -16,12 +16,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/idea3dsvk/machines.git"
+    "url": "https://github.com/Auotns/machines.git"
   },
   "bugs": {
-    "url": "https://github.com/idea3dsvk/machines/issues"
+    "url": "https://github.com/Auotns/machines/issues"
   },
-  "homepage": "https://idea3dsvk.github.io/machines/",
+  "homepage": "https://auotns.github.io/machines/",
   "private": false,
   "type": "module",
   "scripts": {

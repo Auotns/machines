@@ -25,12 +25,12 @@ export const environment = {
   production: false,
   enableMockData: false,
   enableLogging: true,
-  
+
   supabase: {
-    url: 'https://YOUR_PROJECT_ID.supabase.co', // ← Sem vložte svoju URL
-    anonKey: 'eyJhbGc...', // ← Sem vložte svoj anon key
+    url: "https://YOUR_PROJECT_ID.supabase.co", // ← Sem vložte svoju URL
+    anonKey: "eyJhbGc...", // ← Sem vložte svoj anon key
   },
-  
+
   // ...zvyšok konfigurácie
 };
 ```
@@ -40,6 +40,7 @@ export const environment = {
 Pre production deployment používajte **environment variables** namiesto hard-coded hodnôt:
 
 **GitHub Pages / GitHub Actions:**
+
 ```yaml
 # .github/workflows/deploy.yml
 env:
@@ -48,6 +49,7 @@ env:
 ```
 
 **Netlify / Vercel:**
+
 - Pridajte environment variables v dashboard
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
@@ -60,8 +62,8 @@ env:
 
 ```sql
 -- Skontrolujte RLS status
-SELECT schemaname, tablename, rowsecurity 
-FROM pg_tables 
+SELECT schemaname, tablename, rowsecurity
+FROM pg_tables
 WHERE schemaname = 'public';
 
 -- Ak nie je enabled, zapnite ho:
@@ -85,7 +87,7 @@ CREATE POLICY "Admins can update devices" ON devices
   FOR UPDATE
   USING (
     EXISTS (
-      SELECT 1 FROM users 
+      SELECT 1 FROM users
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -117,10 +119,12 @@ USING (bucket_id = 'device-manuals');
 CSP je už pridané v `index.html`. Ak pridávate nové CDN zdroje, aktualizujte CSP:
 
 ```html
-<meta http-equiv="Content-Security-Policy" 
-      content="default-src 'self'; 
+<meta
+  http-equiv="Content-Security-Policy"
+  content="default-src 'self'; 
                script-src 'self' 'unsafe-inline' https://trusted-cdn.com; 
-               ...">
+               ..."
+/>
 ```
 
 ### 4. Rotácia Supabase Keys (Ak boli kompromitované)
@@ -129,8 +133,8 @@ Ak boli credentials omylom commitnuté do Git:
 
 1. **Ihneď rotujte API keys** v Supabase Dashboard:
    - Project Settings > API > Roll anon key
-   
 2. **Odstráňte z Git histórie**:
+
 ```bash
 # Použite git-filter-repo alebo BFG Repo-Cleaner
 git filter-branch --force --index-filter \
@@ -146,19 +150,23 @@ git push origin --force --all
 ### 5. Bezpečnostné Best Practices
 
 #### Tokens v localStorage
+
 - ✅ Používame `localStorage` (nie ideálne, ale lepšie ako nič)
 - 🔄 TODO: Migrovať na `httpOnly` cookies (vyžaduje backend)
 - ✅ Token expirácia kontrola implementovaná
 
 #### Input Sanitization
+
 - ✅ Angular má built-in XSS ochranu
 - 🔄 TODO: Backend validácia v Supabase (triggers/functions)
 
 #### HTTPS Only
+
 - ✅ GitHub Pages automaticky používa HTTPS
 - ✅ Supabase používa HTTPS
 
 #### Rate Limiting
+
 - 🔄 TODO: Implementovať Supabase Edge Functions s rate limiting
 
 ### 6. Monitoring & Incident Response
@@ -166,13 +174,14 @@ git push origin --force --all
 #### Nastavenie Error Monitoring (Odporúčané)
 
 **Sentry.io (Free tier):**
+
 ```typescript
 // src/app.config.ts
 import * as Sentry from "@sentry/angular";
 
 Sentry.init({
   dsn: environment.sentryDsn,
-  environment: environment.production ? 'production' : 'development',
+  environment: environment.production ? "production" : "development",
   beforeSend(event) {
     // Sanitizovať citlivé dáta
     if (event.user) {
@@ -180,7 +189,7 @@ Sentry.init({
       delete event.user.ip_address;
     }
     return event;
-  }
+  },
 });
 ```
 
@@ -198,11 +207,13 @@ Ak zistíte bezpečnostný incident:
 ### 7. Regular Security Audits
 
 **Mesačne:**
+
 - ☐ Skontrolovať Supabase logs na podozrivú aktivitu
 - ☐ Aktualizovať npm dependencies (`npm audit fix`)
 - ☐ Reviewovať RLS policies
 
 **Kvartálne:**
+
 - ☐ Rotovať API keys (best practice)
 - ☐ Security audit codebase
 - ☐ Penetration testing (ak možné)
