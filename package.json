@@ -28,7 +28,7 @@
     "dev": "ng serve",
     "start": "ng serve",
     "build": "ng build",
-    "build:prod": "ng build --configuration=production --base-href /machines/",
+    "build:prod": "npx ng build --configuration=production --base-href /machines/",
     "preview": "ng serve --configuration=production",
     "deploy": "npm run build:prod && gh-pages -d dist",
     "test": "echo \"No tests configured yet\" && exit 0"
