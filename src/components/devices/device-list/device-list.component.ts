@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DataService } from '../../../services/data.service';
 import { ExportService } from '../../../services/export.service';
+import { SanitizerService } from '../../../core/services/sanitizer.service';
 import { Device } from '../../../models';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 
@@ -17,6 +18,7 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
 export class DeviceListComponent {
   private dataService = inject(DataService);
   private exportService = inject(ExportService);
+  private sanitizer = inject(SanitizerService);
   
   devices = this.dataService.getDevicesSignal();
   searchTerm = signal('');
@@ -89,122 +91,138 @@ export class DeviceListComponent {
     const form = event.target as HTMLFormElement;
     const formData = new FormData(form);
 
-    const customId = formData.get('customId') as string;
-    
-    // Kontrola či ID už neexistuje
-    const existingDevice = this.devices().find(d => d.id === customId);
-    if (existingDevice) {
-      alert(`Zariadenie s ID "${customId}" už existuje! Použite iné ID.`);
-      return;
-    }
-
-    const imageFile = formData.get('deviceImage') as File;
-    
-    // Validácia fotky
-    if (imageFile && imageFile.size > 0) {
-      if (imageFile.size > 5 * 1024 * 1024) {
-        alert('Fotka je príliš veľká! Maximálna veľkosť je 5 MB.');
+    try {
+      // Sanitize and validate all inputs
+      const customId = this.sanitizer.sanitizeSku(formData.get('customId') as string);
+      
+      // Kontrola či ID už neexistuje
+      const existingDevice = this.devices().find(d => d.id === customId);
+      if (existingDevice) {
+        alert(`Zariadenie s ID "${customId}" už existuje! Použite iné ID.`);
         return;
       }
-      if (!imageFile.type.startsWith('image/')) {
-        alert('Neplatný formát súboru! Nahrajte obrázok (JPG, PNG, WebP).');
-        return;
-      }
-    }
 
-    const lastMaintenance = formData.get('lastMaintenance') as string;
-    const maintenancePeriod = formData.get('maintenancePeriod') as Device['maintenancePeriod'];
-    
-    // Automaticky vypočítať nextMaintenance na základe maintenancePeriod
-    let nextMaintenance = formData.get('nextMaintenance') as string;
-    if (lastMaintenance && maintenancePeriod) {
-      const lastDate = new Date(lastMaintenance);
-      const nextDate = new Date(lastDate);
+      const imageFile = formData.get('deviceImage') as File;
       
-      switch (maintenancePeriod) {
-        case 'monthly':
-          nextDate.setMonth(nextDate.getMonth() + 1);
-          break;
-        case 'quarterly':
-          nextDate.setMonth(nextDate.getMonth() + 3);
-          break;
-        case 'semi-annually':
-          nextDate.setMonth(nextDate.getMonth() + 6);
-          break;
-        case 'annually':
-          nextDate.setFullYear(nextDate.getFullYear() + 1);
-          break;
-      }
-      
-      nextMaintenance = nextDate.toISOString().split('T')[0];
-    }
-
-    // Spracovať špecifikácie
-    const specifications: Record<string, string | number> = {};
-    this.specificationFields().forEach(spec => {
-      if (spec.key.trim()) {
-        const trimmedValue = spec.value.trim();
-        // Konvertovať na číslo iba ak hodnota obsahuje VÝHRADNE číslice a desatinnú bodku/čiarku
-        const numValue = parseFloat(trimmedValue.replace(',', '.'));
-        const isOnlyNumber = /^-?\d+([.,]\d+)?$/.test(trimmedValue);
-        
-        specifications[spec.key.trim()] = isOnlyNumber && !isNaN(numValue)
-          ? numValue 
-          : trimmedValue;
-      }
-    });
-
-    const newDevice = {
-      id: customId,
-      name: formData.get('name') as string,
-      type: formData.get('type') as string,
-      manufacturer: formData.get('manufacturer') as string || undefined,
-      location: formData.get('location') as string,
-      status: (formData.get('status') as string || 'operational') as Device['status'],
-      manualUrl: formData.get('manualUrl') as string || undefined,
-      lastMaintenance: lastMaintenance,
-      nextMaintenance: nextMaintenance,
-      maintenancePeriod: maintenancePeriod || undefined,
-      specifications: Object.keys(specifications).length > 0 ? specifications : undefined,
-      downtime: 0,
-      lastStatusChange: new Date().toISOString(),
-    };
-
-    console.log('Adding new device with custom ID:', newDevice);
-    
-    this.dataService.addDevice(newDevice).subscribe({
-      next: (addedDevice) => {
-        console.log('✅ Device successfully added:', addedDevice);
-        
-        // Ak je fotka, nahrať ju
-        if (imageFile && imageFile.size > 0) {
-          console.log('📤 Uploading device image...');
-          this.dataService.uploadDeviceImage(addedDevice.id, imageFile).subscribe({
-            next: (imageUrl) => {
-              console.log('✅ Image uploaded successfully:', imageUrl);
-              form.reset();
-              this.showAddForm.set(false);
-              alert(`Zariadenie "${addedDevice.name}" bolo úspešne pridané s fotkou!`);
-            },
-            error: (err) => {
-              console.error('❌ Error uploading image:', err);
-              form.reset();
-              this.showAddForm.set(false);
-              alert(`Zariadenie "${addedDevice.name}" bolo pridané, ale fotka sa nepodarila nahrať: ${err.message}`);
-            }
-          });
-        } else {
-          form.reset();
-          this.showAddForm.set(false);
-          this.specificationFields.set([]); // Vyčistiť špecifikácie
-          alert(`Zariadenie "${addedDevice.name}" bolo úspešne pridané!`);
+      // Validácia fotky
+      if (imageFile && imageFile.size > 0) {
+        if (imageFile.size > 5 * 1024 * 1024) {
+          alert('Fotka je príliš veľká! Maximálna veľkosť je 5 MB.');
+          return;
         }
-      },
-      error: (err) => {
-        console.error('❌ Error adding device:', err);
-        alert(`Chyba pri pridávaní zariadenia: ${err.message}`);
+        if (!imageFile.type.startsWith('image/')) {
+          alert('Neplatný formát súboru! Nahrajte obrázok (JPG, PNG, WebP).');
+          return;
+        }
       }
-    });
+
+      // Sanitize form data
+      const name = this.sanitizer.sanitizeName(formData.get('name') as string);
+      const type = this.sanitizer.sanitizeName(formData.get('type') as string);
+      const manufacturer = formData.get('manufacturer') ? 
+        this.sanitizer.sanitizeName(formData.get('manufacturer') as string) : undefined;
+      const location = this.sanitizer.sanitizeName(formData.get('location') as string);
+      const status = this.sanitizer.sanitizeDeviceStatus(formData.get('status') as string);
+      const manualUrl = formData.get('manualUrl') ? 
+        this.sanitizer.sanitizeUrl(formData.get('manualUrl') as string) : undefined;
+      const lastMaintenance = this.sanitizer.sanitizeDate(formData.get('lastMaintenance') as string);
+      const maintenancePeriod = formData.get('maintenancePeriod') as Device['maintenancePeriod'];
+      
+      // Automaticky vypočítať nextMaintenance na základe maintenancePeriod
+      let nextMaintenance = formData.get('nextMaintenance') as string;
+      if (lastMaintenance && maintenancePeriod) {
+        const lastDate = new Date(lastMaintenance);
+        const nextDate = new Date(lastDate);
+        
+        switch (maintenancePeriod) {
+          case 'monthly':
+            nextDate.setMonth(nextDate.getMonth() + 1);
+            break;
+          case 'quarterly':
+            nextDate.setMonth(nextDate.getMonth() + 3);
+            break;
+          case 'semi-annually':
+            nextDate.setMonth(nextDate.getMonth() + 6);
+            break;
+          case 'annually':
+            nextDate.setFullYear(nextDate.getFullYear() + 1);
+            break;
+        }
+        
+        nextMaintenance = nextDate.toISOString().split('T')[0];
+      }
+      nextMaintenance = this.sanitizer.sanitizeDate(nextMaintenance);
+
+      // Spracovať špecifikácie
+      const specifications: Record<string, string | number> = {};
+      this.specificationFields().forEach(spec => {
+        if (spec.key.trim()) {
+          const trimmedValue = spec.value.trim();
+          // Konvertovať na číslo iba ak hodnota obsahuje VÝHRADNE číslice a desatinnú bodku/čiarku
+          const numValue = parseFloat(trimmedValue.replace(',', '.'));
+          const isOnlyNumber = /^-?\d+([.,]\d+)?$/.test(trimmedValue);
+          
+          specifications[spec.key.trim()] = isOnlyNumber && !isNaN(numValue)
+            ? numValue 
+            : trimmedValue;
+        }
+      });
+      const sanitizedSpecs = this.sanitizer.sanitizeSpecifications(specifications);
+
+      const newDevice = {
+        id: customId,
+        name: name,
+        type: type,
+        manufacturer: manufacturer,
+        location: location,
+        status: status,
+        manualUrl: manualUrl,
+        lastMaintenance: lastMaintenance,
+        nextMaintenance: nextMaintenance,
+        maintenancePeriod: maintenancePeriod || undefined,
+        specifications: Object.keys(sanitizedSpecs).length > 0 ? sanitizedSpecs : undefined,
+        downtime: 0,
+        lastStatusChange: new Date().toISOString(),
+      };
+
+      console.log('Adding new device with custom ID:', newDevice);
+      
+      this.dataService.addDevice(newDevice).subscribe({
+        next: (addedDevice) => {
+          console.log('✅ Device successfully added:', addedDevice);
+          
+          // Ak je fotka, nahrať ju
+          if (imageFile && imageFile.size > 0) {
+            console.log('📤 Uploading device image...');
+            this.dataService.uploadDeviceImage(addedDevice.id, imageFile).subscribe({
+              next: (imageUrl) => {
+                console.log('✅ Image uploaded successfully:', imageUrl);
+                form.reset();
+                this.showAddForm.set(false);
+                alert(`Zariadenie "${addedDevice.name}" bolo úspešne pridané s fotkou!`);
+              },
+              error: (err) => {
+                console.error('❌ Error uploading image:', err);
+                form.reset();
+                this.showAddForm.set(false);
+                alert(`Zariadenie "${addedDevice.name}" bolo pridané, ale fotka sa nepodarila nahrať: ${err.message}`);
+              }
+            });
+          } else {
+            form.reset();
+            this.showAddForm.set(false);
+            this.specificationFields.set([]); // Vyčistiť špecifikácie
+            alert(`Zariadenie "${addedDevice.name}" bolo úspešne pridané!`);
+          }
+        },
+        error: (err) => {
+          console.error('❌ Error adding device:', err);
+          alert(`Chyba pri pridávaní zariadenia: ${err.message}`);
+        }
+      });
+    } catch (error: any) {
+      alert(`Chyba validcie: ${error.message}`);
+    }
   }
 
   exportDevices() {

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DataService } from '../../../services/data.service';
 import { AuthService } from '../../../services/auth.service';
+import { SanitizerService } from '../../../core/services/sanitizer.service';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
 
 @Component({
@@ -15,6 +16,7 @@ import { TranslatePipe } from '../../../pipes/translate.pipe';
 export class PartListComponent {
   private dataService = inject(DataService);
   authService = inject(AuthService);
+  private sanitizer = inject(SanitizerService);
   
   // Use the signal directly from DataService that gets updated
   parts = computed(() => this.dataService.getPartsSignal()());
@@ -191,46 +193,51 @@ export class PartListComponent {
     const form = event.target as HTMLFormElement;
     const formData = new FormData(form);
     
-    const deviceId = formData.get('deviceId') as string;
-    const selectedDevice = deviceId ? this.devices().find(d => d.id === deviceId) : undefined;
-    
-    const newPart = {
-      name: formData.get('name') as string,
-      sku: formData.get('sku') as string,
-      quantity: parseInt(formData.get('quantity') as string),
-      minQuantity: parseInt(formData.get('minQuantity') as string) || 10,
-      location: formData.get('location') as string,
-      deviceId: deviceId || undefined,
-      deviceName: selectedDevice?.name || undefined,
-    };
+    try {
+      const deviceId = formData.get('deviceId') as string;
+      const selectedDevice = deviceId ? this.devices().find(d => d.id === deviceId) : undefined;
+      
+      // Sanitize all inputs
+      const newPart = {
+        name: this.sanitizer.sanitizeName(formData.get('name') as string),
+        sku: this.sanitizer.sanitizeSku(formData.get('sku') as string),
+        quantity: this.sanitizer.sanitizeInteger(formData.get('quantity') as string),
+        minQuantity: this.sanitizer.sanitizeInteger(formData.get('minQuantity') as string) || 10,
+        location: this.sanitizer.sanitizeName(formData.get('location') as string),
+        deviceId: deviceId || undefined,
+        deviceName: selectedDevice?.name || undefined,
+      };
 
-    console.log('🔄 Adding new part:', newPart);
-    
-    this.dataService.addPart(newPart).subscribe({
-      next: (addedPart) => {
-        console.log('✅ Part added successfully:', addedPart);
-        this.showAddForm.set(false);
-        form.reset();
-        // Explicitne znovu načítať zoznam dielov a ich históriu
-        this.dataService.getParts().subscribe(() => {
-          console.log('🔄 Parts list refreshed after adding new part');
-          this.loadPartsHistory();
-        });
-      },
-      error: (err) => {
-        console.error('❌ Error adding part:', err);
-        // Extract user-friendly message
-        let errorMessage = 'Chyba pri pridávaní dielu';
-        if (err.message) {
-          if (err.message.includes('SKU už existuje')) {
-            errorMessage = 'SKU už existuje v databáze. Zadajte jedinečné SKU.';
-          } else {
-            errorMessage = err.message;
+      console.log('🔄 Adding new part:', newPart);
+      
+      this.dataService.addPart(newPart).subscribe({
+        next: (addedPart) => {
+          console.log('✅ Part added successfully:', addedPart);
+          this.showAddForm.set(false);
+          form.reset();
+          // Explicitne znovu načítať zoznam dielov a ich históriu
+          this.dataService.getParts().subscribe(() => {
+            console.log('🔄 Parts list refreshed after adding new part');
+            this.loadPartsHistory();
+          });
+        },
+        error: (err) => {
+          console.error('❌ Error adding part:', err);
+          // Extract user-friendly message
+          let errorMessage = 'Chyba pri pridávaní dielu';
+          if (err.message) {
+            if (err.message.includes('SKU už existuje')) {
+              errorMessage = 'SKU už existuje v databáze. Zadajte jedinečné SKU.';
+            } else {
+              errorMessage = err.message;
+            }
           }
+          alert(errorMessage);
         }
-        alert(errorMessage);
-      }
-    });
+      });
+    } catch (error: any) {
+      alert(`Chyba validácie: ${error.message}`);
+    }
   }
 
   deletePart(partId: string, partName: string) {

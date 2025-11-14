@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { DataService } from '../../../services/data.service';
 import { AuthService } from '../../../services/auth.service';
+import { SanitizerService } from '../../../core/services/sanitizer.service';
 import { QrCodeComponent } from '../../shared/qr-code/qr-code.component';
 import { Device } from '../../../models';
 import { TranslatePipe } from '../../../pipes/translate.pipe';
@@ -21,6 +22,7 @@ export class DeviceDetailComponent {
   private router = inject(Router);
   private dataService = inject(DataService);
   authService = inject(AuthService);
+  private sanitizer = inject(SanitizerService);
 
   // Use signal that gets updated when devices change
   private allDevices = this.dataService.getDevicesSignal();
@@ -58,38 +60,47 @@ export class DeviceDetailComponent {
       return;
     }
     
-    if (!notes || notes.trim() === '') {
-      alert('Prosím zadajte poznámky k údržbe.');
-      return;
-    }
-
-    if (!durationMinutes || durationMinutes < 15) {
-      alert('Minimálne trvanie údržby je 15 minút.');
-      return;
-    }
-    
-    const typeLabel = type === 'scheduled' ? '📅 Plánovaná' : '🚨 Neodkladná';
-    const durationHours = (durationMinutes / 60).toFixed(1);
-    console.log(`📝 Logging ${type} maintenance for device:`, dev.name, 'Duration:', durationMinutes, 'minutes');
-    
-    this.dataService.addMaintenanceLog({
-      deviceId: dev.id,
-      deviceName: dev.name,
-      date: new Date().toISOString().split('T')[0],
-      technician: user.email,
-      notes: notes.trim(),
-      type: type,
-      durationMinutes: durationMinutes,
-    }).subscribe({
-      next: (log) => {
-        console.log('✅ Maintenance log saved:', log);
-        alert(`Údržba zariadenia "${dev.name}" bola úspešne zaznamenaná.\n\nTyp: ${typeLabel}\nTechnik: ${user.email}\nDátum: ${new Date().toLocaleDateString('sk-SK')}\nTrvanie: ${durationMinutes} minút (${durationHours}h)\n\nPoznámky: ${notes.trim()}`);
-      },
-      error: (err) => {
-        console.error('❌ Error logging maintenance:', err);
-        alert(`Chyba pri zaznamenávaní údržby: ${err.message}`);
+    try {
+      // Sanitize inputs
+      const sanitizedNotes = this.sanitizer.sanitizeNotes(notes);
+      const sanitizedType = this.sanitizer.sanitizeMaintenanceType(type);
+      const sanitizedDuration = this.sanitizer.sanitizeInteger(durationMinutes);
+      
+      if (!sanitizedNotes || sanitizedNotes.trim() === '') {
+        alert('Prosím zadajte poznámky k údržbe.');
+        return;
       }
-    });
+
+      if (!sanitizedDuration || sanitizedDuration < 15) {
+        alert('Minimálne trvanie údržby je 15 minút.');
+        return;
+      }
+      
+      const typeLabel = sanitizedType === 'scheduled' ? '📅 Plánovaná' : '🚨 Neodkladná';
+      const durationHours = (sanitizedDuration / 60).toFixed(1);
+      console.log(`📝 Logging ${sanitizedType} maintenance for device:`, dev.name, 'Duration:', sanitizedDuration, 'minutes');
+      
+      this.dataService.addMaintenanceLog({
+        deviceId: dev.id,
+        deviceName: dev.name,
+        date: new Date().toISOString().split('T')[0],
+        technician: user.email,
+        notes: sanitizedNotes,
+        type: sanitizedType,
+        durationMinutes: sanitizedDuration,
+      }).subscribe({
+        next: (log) => {
+          console.log('✅ Maintenance log saved:', log);
+          alert(`Údržba zariadenia "${dev.name}" bola úspešne zaznamenaná.\n\nTyp: ${typeLabel}\nTechnik: ${user.email}\nDátum: ${new Date().toLocaleDateString('sk-SK')}\nTrvanie: ${sanitizedDuration} minút (${durationHours}h)\n\nPoznámky: ${sanitizedNotes}`);
+        },
+        error: (err) => {
+          console.error('❌ Error logging maintenance:', err);
+          alert(`Chyba pri zaznamenávaní údržby: ${err.message}`);
+        }
+      });
+    } catch (error: any) {
+      alert(`Chyba validácie: ${error.message}`);
+    }
   }
 
   updateStatus(newStatus: Device['status']) {
