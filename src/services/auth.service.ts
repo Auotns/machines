@@ -61,11 +61,36 @@ export class AuthService {
     // Supabase mode - skontrolovať session
     try {
       const { data: { session } } = await this.supabaseService.auth.getSession();
+      console.log('Session on init:', session);
       if (session?.user) {
+        console.log('User found in session, loading profile...');
         await this.loadUserProfile(session.user.id);
+      } else {
+        console.log('No active session, checking localStorage...');
+        // Ak nie je session, skúsiť načítať z localStorage ako fallback
+        const storedUser = localStorage.getItem('currentUser');
+        if (storedUser) {
+          try {
+            const user = JSON.parse(storedUser);
+            this.currentUser.set(user);
+            console.log('User restored from localStorage:', user);
+          } catch (error) {
+            console.error('Error parsing stored user:', error);
+            this.clearAuthData();
+          }
+        }
       }
     } catch (error) {
       console.error('Error initializing auth:', error);
+      // Fallback na localStorage
+      const storedUser = localStorage.getItem('currentUser');
+      if (storedUser) {
+        try {
+          this.currentUser.set(JSON.parse(storedUser));
+        } catch (e) {
+          this.clearAuthData();
+        }
+      }
     }
   }
 
@@ -153,85 +178,52 @@ export class AuthService {
    */
   private performSupabaseLogin(email: string, password: string): Observable<boolean> {
     
-    console.log('Attempting Supabase login with email:', email);
+    console.log('🔐 Attempting Supabase login with email:', email);
     
-    // Použiť direct fetch pretože Supabase JS klient má problém s promise resolution
-    const loginPromise = fetch(`${environment.supabase.url}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': environment.supabase.anonKey,
-      },
-      body: JSON.stringify({
-        email,
-        password: password,
-      }),
+    // Použiť Supabase klient pre správne hashovanie hesiel
+    const loginPromise = this.supabaseService.auth.signInWithPassword({
+      email,
+      password,
     })
-      .then(async res => {
-        console.log('Supabase API response:', res.status);
-        const data = await res.json();
+      .then(async ({ data, error }) => {
+        console.log('📥 Supabase login response:', { data, error });
         
-        if (!res.ok) {
-          throw new Error(data.error_description || data.msg || 'Login failed');
+        if (error) {
+          console.error('❌ Login error:', error.message);
+          throw new Error(error.message);
         }
         
-        console.log('Login successful, user:', data.user);
+        if (!data.user || !data.session) {
+          console.error('❌ No user or session in response');
+          throw new Error('Login failed - no session');
+        }
         
-        // Uložiť tokeny do localStorage
-        console.log('Storing tokens in localStorage...');
+        console.log('✅ Login successful, user:', data.user.email);
+        
+        // Uložiť session do localStorage
+        console.log('💾 Storing session...');
         localStorage.setItem('supabase.auth.token', JSON.stringify({
-          access_token: data.access_token,
-          refresh_token: data.refresh_token,
-          expires_at: data.expires_at,
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+          expires_at: data.session.expires_at,
         }));
         
-        // Načítať user profile priamo cez fetch (pretože Supabase klient nefunguje)
-        console.log('Loading user profile for ID:', data.user.id);
-        try {
-          const profileRes = await fetch(`${environment.supabase.url}/rest/v1/users?id=eq.${data.user.id}`, {
-            headers: {
-              'apikey': environment.supabase.anonKey,
-              'Authorization': `Bearer ${data.access_token}`,
-            },
-          });
-          
-          const profiles = await profileRes.json();
-          console.log('Profile response:', profiles);
-          
-          if (profiles && profiles.length > 0) {
-            const profile = profiles[0];
-            const user: User = {
-              id: profile.id,
-              email: profile.email,
-              role: profile.role,
-            };
-            this.currentUser.set(user);
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            console.log('User profile loaded:', user);
-          } else {
-            console.warn('No profile found, using data from auth user_metadata');
-            // Získať rolu z user metadata
-            const userRole = data.user.user_metadata?.role || data.user.raw_user_meta_data?.role || 'technician';
-            const user: User = {
-              id: data.user.id,
-              email: data.user.email,
-              role: userRole,
-            };
-            this.currentUser.set(user);
-            localStorage.setItem('currentUser', JSON.stringify(user));
-          }
-        } catch (err) {
-          console.error('Error loading user profile:', err);
-          // Fallback - použiť rolu z user metadata
-          const userRole = data.user.user_metadata?.role || data.user.raw_user_meta_data?.role || 'technician';
-          const user: User = {
-            id: data.user.id,
-            email: data.user.email,
-            role: userRole,
-          };
-          this.currentUser.set(user);
-          localStorage.setItem('currentUser', JSON.stringify(user));
-        }
+        // Načítať user profile z databázy
+        console.log('👤 Loading user profile for ID:', data.user.id);
+        
+        // Získať rolu z user metadata
+        const userRole = data.user.user_metadata?.role || 'technician';
+        console.log('📝 User role from metadata:', userRole);
+        
+        const user: User = {
+          id: data.user.id,
+          email: data.user.email!,
+          role: userRole,
+        };
+        
+        this.currentUser.set(user);
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        console.log('✅ User profile set:', user);
         
         return true;
       })

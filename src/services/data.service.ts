@@ -1,7 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Device, SparePart, MaintenanceLog } from '../models';
-import { Observable, of, delay, tap, catchError, map, from } from 'rxjs';
+import { Observable, of, delay, tap, catchError, map, from, defer } from 'rxjs';
 import { ApiService } from '../core/services/api.service';
 import { SupabaseService } from '../core/services/supabase.service';
 import { environment } from '../environments/environment';
@@ -801,14 +801,8 @@ export class DataService {
       return of(part!).pipe(delay(300));
     }
 
-    console.log('🔄 Updating part quantity via direct fetch:', { partId, newQuantity, notes, changeType });
-    const token = localStorage.getItem('supabase.auth.token');
-    if (!token) {
-      console.warn('⚠️ No auth token found');
-      return of(null as any);
-    }
-
-    const tokenData = JSON.parse(token);
+    console.log('🔄 Updating part quantity via Supabase client:', { partId, newQuantity, notes, changeType });
+    
     const currentPart = this.parts().find(p => p.id === partId);
     
     if (!currentPart) {
@@ -818,37 +812,50 @@ export class DataService {
 
     const quantityBefore = currentPart.quantity;
 
-    return from(
-      fetch(`${environment.supabase.url}/rest/v1/spare_parts?id=eq.${partId}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': environment.supabase.anonKey,
-          'Authorization': `Bearer ${tokenData.access_token}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
-        },
-        body: JSON.stringify({ quantity: newQuantity }),
-      })
-      .then(async res => {
-        console.log('📥 Update part response status:', res.status);
-        const responseText = await res.text();
-        console.log('📥 Response body:', responseText);
-        
-        if (!res.ok) {
-          console.error('❌ Server error response:', responseText);
-          throw new Error(`HTTP ${res.status}: ${responseText}`);
+    console.log('🚀 Starting update process...');
+
+    // Use defer to ensure Promise is created on subscription
+    return defer(() => {
+      console.log('🎯 Observable subscribed!');
+      
+      // Simplified: Just execute the update directly
+      // Supabase client handles session automatically
+      const updatePromise = (async () => {
+        try {
+          console.log('🔄 Executing UPDATE query...');
+          console.log('📊 Update params:', { partId, newQuantity });
+          
+          const response = await (this.supabaseService.db as any)
+            .from('spare_parts')
+            .update({ quantity: newQuantity })
+            .eq('id', partId)
+            .select();
+          
+          console.log('📥 Update part response received!');
+          console.log('📥 Response:', JSON.stringify(response, null, 2));
+          
+          if (response.error) {
+            console.error('❌ Supabase error:', response.error);
+            throw new Error(response.error.message);
+          }
+          
+          if (!response.data || response.data.length === 0) {
+            console.error('❌ No data returned from update - RLS policy may be blocking');
+            throw new Error('Update blocked - check RLS policies in Supabase');
+          }
+          
+          console.log('✅ Update successful, data:', response.data);
+          return response.data;
+        } catch (error: any) {
+          console.error('❌ Exception in update promise:', error);
+          throw error;
         }
-        
-        return responseText ? JSON.parse(responseText) : null;
-      })
-    ).pipe(
+      })();
+      
+      return from(updatePromise);
+    }).pipe(
       tap(data => console.log('✅ Part quantity updated:', data)),
-      map((data: any[]) => {
-        if (data && data.length > 0) {
-          return this.mapPartFromDb(data[0]);
-        }
-        throw new Error('No data returned');
-      }),
+      map((data: any[]) => this.mapPartFromDb(data[0])),
       tap(updatedPart => {
         console.log('📝 Updating local parts signal');
         this.parts.update(parts =>
@@ -861,14 +868,9 @@ export class DataService {
         
         console.log('📝 Creating history record with user:', userEmail);
         
-        fetch(`${environment.supabase.url}/rest/v1/spare_parts_history`, {
-          method: 'POST',
-          headers: {
-            'apikey': environment.supabase.anonKey,
-            'Authorization': `Bearer ${tokenData.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        (this.supabaseService.db as any)
+          .from('spare_parts_history')
+          .insert({
             part_id: partId,
             part_name: currentPart.name,
             quantity_before: quantityBefore,
@@ -876,16 +878,14 @@ export class DataService {
             change_type: changeType,
             notes: notes || null,
             changed_by: userEmail,
-          }),
-        })
-        .then(res => {
-          if (res.ok) {
-            console.log('✅ History record created');
-          } else {
-            console.warn('⚠️ Failed to create history record');
-          }
-        })
-        .catch(err => console.warn('⚠️ History save error:', err));
+          })
+          .then((res: any) => {
+            if (res.error) {
+              console.warn('⚠️ Failed to create history record:', res.error);
+            } else {
+              console.log('✅ History record created');
+            }
+          }, (err: any) => console.warn('⚠️ History save error:', err));
       }),
       catchError(error => {
         console.error('❌ Error updating part quantity:', error);

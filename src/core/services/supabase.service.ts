@@ -29,12 +29,29 @@ export interface Database {
           name: string;
           sku: string;
           quantity: number;
+          min_quantity: number;
           location: string;
+          device_id: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: Omit<Database['public']['Tables']['spare_parts']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['spare_parts']['Insert']>;
+      };
+      spare_parts_history: {
+        Row: {
+          id: string;
+          part_id: string;
+          part_name: string;
+          quantity_before: number;
+          quantity_after: number;
+          change_type: 'increase' | 'decrease' | 'set';
+          notes: string | null;
+          changed_by: string;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['spare_parts_history']['Row'], 'id' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['spare_parts_history']['Insert']>;
       };
       maintenance_logs: {
         Row: {
@@ -78,6 +95,8 @@ export class SupabaseService {
       environment.supabase.anonKey,
       {
         auth: {
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+          storageKey: 'supabase.auth.token',
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: true,

@@ -91,12 +91,16 @@
             @for (spec of specificationFields(); track $index) {
               <div class="flex gap-2 items-start">
                 <input 
+                  [id]="'specKey-' + $index"
+                  [name]="'specKey-' + $index"
                   type="text" 
                   [value]="spec.key"
                   (input)="updateSpecificationKey($index, $event)"
                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" 
                   placeholder="{{ 'SPEC_KEY_PLACEHOLDER' | translate }}">
                 <input 
+                  [id]="'specValue-' + $index"
+                  [name]="'specValue-' + $index"
                   type="text" 
                   [value]="spec.value"
                   (input)="updateSpecificationValue($index, $event)"
@@ -128,6 +132,8 @@
 <div class="bg-white p-6 rounded-lg shadow-md">
   <div class="mb-4">
     <input 
+      id="devicesSearch"
+      name="devicesSearch"
       type="text" 
       [placeholder]="'SEARCH_DEVICES' | translate" 
       (input)="onSearch($event)"

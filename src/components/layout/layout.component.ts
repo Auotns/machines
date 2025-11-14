@@ -22,6 +22,12 @@ export class LayoutComponent {
   currentLanguage = this.translationService.currentLanguage;
   
   isAdmin = computed(() => this.user()?.role === 'admin');
+  
+  userRoleDisplay = computed(() => {
+    const role = this.user()?.role;
+    if (!role) return '';
+    return role === 'admin' ? 'ADMIN' : 'TECHNICIAN';
+  });
 
   toggleSidebar() {
     this.sidebarOpen.update(open => !open);

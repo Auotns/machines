@@ -24,6 +24,7 @@ const translations = {
     EMAIL: 'Email',
     PASSWORD: 'Password',
     LOADING: 'Loading...',
+    ADMIN: 'Admin',
     
     // Dashboard
     OPERATIONAL: 'Operational',
@@ -171,6 +172,7 @@ const translations = {
     EMAIL: 'Email',
     PASSWORD: 'Heslo',
     LOADING: 'Načítavam...',
+    ADMIN: 'Admin',
     
     // Dashboard
     OPERATIONAL: 'V prevádzke',
@@ -318,6 +320,7 @@ const translations = {
     EMAIL: 'E-Mail',
     PASSWORD: 'Passwort',
     LOADING: 'Lädt...',
+    ADMIN: 'Admin',
     
     // Dashboard
     OPERATIONAL: 'Betriebsbereit',

@@ -45,7 +45,6 @@
     "@angular/router": "^20.3.9",
     "@supabase/supabase-js": "^2.78.0",
     "rxjs": "^7.8.2",
-    "tailwindcss": "latest",
     "zone.js": "^0.15.1"
   },
   "devDependencies": {
