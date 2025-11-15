@@ -30,8 +30,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create environment file
+      - name: Create environment files
         run: |
+          cat > src/environments/environment.ts << 'EOF'
+          export const environment = {
+            production: false,
+            enableMockData: false,
+            enableLogging: true,
+            supabase: {
+              url: '${{ secrets.SUPABASE_URL }}',
+              anonKey: '${{ secrets.SUPABASE_ANON_KEY }}',
+            },
+            apiUrl: 'http://localhost:3001/api',
+            apiTimeout: 30000,
+            jwtTokenKey: 'auth_token',
+            refreshTokenKey: 'refresh_token',
+          };
+          EOF
           cat > src/environments/environment.prod.ts << 'EOF'
           export const environment = {
             production: true,
